@@ -26,13 +26,18 @@ var yargs = require('yargs')
   .describe('p', 'choose the parser that should be used with jscodeshift')
   .choices('p', ['babel', 'babylon', 'flow'])
   .default('p', 'babel')
+  .alias('s', 'suffix')
+  .describe('s', 'define the files suffix to transform')
+  .default('s', 'js')
   .example('$0 index.js', 'convert a single file')
   .example('$0 lib/', 'convert all files in a directory')
+  .example('$0 lib/ -s "js|jsx"', 'convert all .js & .jsx files in a directory')
   .example('$0 foo.js bar.js lib/', 'convert many files/directories')
   ;
 
 var files = yargs.argv._;
 var verbose = yargs.argv.verbose;
+var suffix = yargs.argv.suffix;
 
 if (yargs.argv.h || !files.length) {
   console.log('\ncjs-to-es6 v' + require('./package.json').version + ': ' +
@@ -45,8 +50,8 @@ function findJsFiles(dir) {
   return new Promise(function (resolve, reject) {
     var files = [];
     findit(dir).on('file', function (file) {
-      // only return files ending in .js
-      if (/\.js$/.test(file)) {
+      var reg = new RegExp("\.(" + suffix + ")$");
+      if (reg.test(file)) {
         files.push(file);
       }
     }).on('end', function () {
